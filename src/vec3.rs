@@ -1,7 +1,7 @@
 use std::ops;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Vec3(f64, f64, f64);
+pub struct Vec3(pub f64, pub f64, pub f64);
 
 pub fn dot(u: Vec3, v: Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
@@ -21,27 +21,27 @@ pub fn cross(u: Vec3, w: Vec3) -> Vec3 {
 
 #[allow(dead_code)]
 impl Vec3 {
-    fn scale(self, k: f64) -> Vec3 {
+    pub fn scale(self, k: f64) -> Vec3 {
         Vec3(self.0 * k, self.1 * k, self.2 * k)
     }
 
-    fn dot(self, other: Vec3) -> f64 {
+    pub fn dot(self, other: Vec3) -> f64 {
         dot(self, other)
     }
 
-    fn cross(self, other: Vec3) -> Vec3 {
+    pub fn cross(self, other: Vec3) -> Vec3 {
         cross(self, other)
     }
 
-    fn length_squared(self) -> f64 {
+    pub fn length_squared(self) -> f64 {
         dot(self, self)
     }
 
-    fn length(self) -> f64 {
+    pub fn length(self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    fn unit(self) -> Vec3 {
+    pub fn unit(self) -> Vec3 {
         unit(self)
     }
 }
@@ -99,6 +99,22 @@ impl ops::Mul<Vec3> for f64 {
         v.scale(self)
     }
 }
+impl ops::Mul<Vec3> for i32 {
+    type Output = Vec3;
+
+    fn mul(self, v: Vec3) -> Self::Output {
+        v.scale(self as f64)
+    }
+}
+
+impl ops::Mul<Vec3> for i64 {
+    type Output = Vec3;
+
+    fn mul(self, v: Vec3) -> Self::Output {
+        v.scale(self as f64)
+    }
+}
+
 impl ops::Mul<f64> for Vec3 {
     type Output = Vec3;
 
