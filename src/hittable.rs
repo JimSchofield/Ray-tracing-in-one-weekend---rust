@@ -1,7 +1,7 @@
 use crate::{
-    ray::Ray,
-    vec3::{dot, Vec3},
     interval::Interval,
+    ray::Ray,
+    vec3::{Vec3, dot},
 };
 
 #[allow(dead_code)]
