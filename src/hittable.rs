@@ -1,6 +1,7 @@
 use crate::{
     ray::Ray,
     vec3::{dot, Vec3},
+    interval::Interval,
 };
 
 #[allow(dead_code)]
@@ -14,7 +15,7 @@ pub struct HitRecord {
 
 #[allow(dead_code)]
 pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, ray_t: Interval, rec: &mut HitRecord) -> bool;
 }
 
 impl HitRecord {
