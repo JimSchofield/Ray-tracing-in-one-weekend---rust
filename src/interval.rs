@@ -23,6 +23,14 @@ impl Interval {
         let &Interval { min, max } = self;
         min < x && x < max
     }
+
+    pub fn clamp(&self, x: f64) -> f64 {
+        match x {
+            i if i < self.min => self.min,
+            i if i > self.max => self.max,
+            _ => x,
+        }
+    }
 }
 
 pub const EMPTY: Interval = Interval {
@@ -33,3 +41,23 @@ pub const UNIVERSE: Interval = Interval {
     min: NEG_INFINITY,
     max: INFINITY,
 };
+
+#[cfg(test)]
+mod interval_tests {
+    use std::f64::consts::PI;
+
+    use super::*;
+
+    #[test]
+    fn clamp() {
+        let interval = Interval::new(5.0, 10.0);
+
+
+        assert_eq!(interval.clamp(2.0), 5.0);
+        assert_eq!(interval.clamp(100.0), 10.0);
+        assert_eq!(interval.clamp(6.5), 6.5);
+
+        let x = 5.0 + PI;
+        assert_eq!(interval.clamp(x), x);
+    }
+}

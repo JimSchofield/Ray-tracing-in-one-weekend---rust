@@ -10,6 +10,7 @@ mod hittable;
 mod hittable_list;
 mod interval;
 mod ray;
+mod random;
 mod sphere;
 mod vec3;
 

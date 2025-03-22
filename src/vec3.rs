@@ -37,7 +37,7 @@ impl Vec3 {
         dot(self, self)
     }
 
-    pub fn length(self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
