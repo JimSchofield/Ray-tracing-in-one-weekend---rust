@@ -8,6 +8,12 @@ use crate::{
     vec3::{Vec3, random_on_hemisphere},
 };
 
+pub struct CameraConfig {
+    pub aspect_ratio: f64,
+    pub image_width: f64,
+    pub samples_per_pixel: i32,
+}
+
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: f64,
@@ -32,7 +38,12 @@ pub struct Camera {
 // }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: f64, samples_per_pixel: i32) -> Camera {
+    pub fn new(cfg: CameraConfig) -> Camera {
+        let CameraConfig {
+            aspect_ratio,
+            image_width,
+            samples_per_pixel,
+        } = cfg;
         let image_height = (image_width / aspect_ratio) as i64;
 
         let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
