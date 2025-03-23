@@ -21,10 +21,11 @@ fn main() {
     world.add(Box::new(Sphere::new(Vec3(0., 0., -1.), 0.5)));
     world.add(Box::new(Sphere::new(Vec3(0., -100.5, -1.), 100.)));
 
-    let cam = Camera  {
-        image_width: 1000.,
+    let mut cam = Camera  {
+        image_width: 400.,
         aspect_ratio: 16. / 9.,
-        // ..Default::default()
+        samples_per_pixel: 100,
+        ..Default::default()
     };
 
     cam.render(&world);

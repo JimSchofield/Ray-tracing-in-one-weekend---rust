@@ -1,10 +1,28 @@
 use crate::{
-    color::write_color, hittable::{HitRecord, Hittable}, hittable_list::HittableList, interval::Interval, ray::Ray, vec3::Vec3
+    color::write_color,
+    hittable::{HitRecord, Hittable},
+    hittable_list::HittableList,
+    interval::Interval,
+    random::Random,
+    ray::Ray,
+    vec3::Vec3,
 };
+
+#[derive(Default)]
+struct CameraConfig {
+    image_height: i64,
+    camera_center: Vec3,
+    pixel_samples_scale: f64,
+    pixel00_loc: Vec3,
+    pixel_delta_u: Vec3,
+    pixel_delta_v: Vec3,
+}
 
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: f64,
+    pub samples_per_pixel: i32,
+    pub config: Option<CameraConfig>,
 }
 
 impl Default for Camera {
@@ -12,15 +30,61 @@ impl Default for Camera {
         Camera {
             aspect_ratio: 16.0 / 9.0,
             image_width: 400.,
+            samples_per_pixel: 10,
+            config: None,
         }
     }
 }
 
 impl Camera {
-    pub fn render(&self, world: &HittableList) {
+    pub fn render(&mut self, world: &HittableList) {
+        self.init();
+
+        let &mut Camera {
+            image_width,
+            samples_per_pixel,
+            config:
+                Some(CameraConfig {
+                    image_height,
+                    pixel_samples_scale,
+                    ..
+                }),
+            ..
+        } = self
+        else {
+            todo!()
+        };
+
+        print!("P3\n{} {}\n255\n", image_width, image_height);
+
+        for j in 0..(image_height) {
+            eprint!("\rScanlines remaining: {} ", image_height - j);
+            for i in 0..(image_width as i64) {
+                let mut pixel_color = Vec3(0., 0., 0.);
+                for _sample in 0..samples_per_pixel {
+                    let r = self.get_ray(i, j);
+
+                    pixel_color += ray_color(&r, world);
+                }
+
+                let samples_scale_vec = Vec3::splat(pixel_samples_scale);
+                write_color(samples_scale_vec * pixel_color);
+            }
+        }
+        eprint!("\rDone! ");
+    }
+
+    fn init(&mut self) {
         // Image
-        let &Camera { aspect_ratio, image_width } = self;
+        let &mut Camera {
+            aspect_ratio,
+            image_width,
+            samples_per_pixel,
+            ..
+        } = self;
         let image_height = (image_width / aspect_ratio) as i64;
+
+        let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
 
         // Camera
         let focal_length = 1.0;
@@ -41,22 +105,42 @@ impl Camera {
             camera_center - Vec3(0., 0., focal_length) - viewport_u / 2. - viewport_v / 2.;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-        print!("P3\n{} {}\n255\n", image_width, image_height);
-
-        for j in 0..image_height {
-            eprint!("\rScanlines remaining: {} ", image_height - j);
-            for i in 0..(image_width as i64) {
-                let pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-                let ray_direction = pixel_center - camera_center;
-                let r = Ray::new(camera_center, ray_direction);
-
-                let pixel_color = ray_color(&r, world);
-
-                write_color(pixel_color);
-            }
-        }
-        eprint!("\rDone! ");
+        self.config = Some(CameraConfig {
+            image_height,
+            pixel_samples_scale,
+            camera_center,
+            pixel00_loc,
+            pixel_delta_u,
+            pixel_delta_v,
+        })
     }
+
+    fn get_ray(&self, i: i64, j: i64) -> Ray {
+        let Some(CameraConfig {
+            camera_center,
+            pixel00_loc,
+            pixel_delta_u,
+            pixel_delta_v,
+            ..
+        }) = self.config
+        else {
+            todo!()
+        };
+
+        let offset = sample_square();
+        let pixel_center = pixel00_loc
+            + ((i as f64 + offset.0) * pixel_delta_u)
+            + ((j as f64 + offset.1) * pixel_delta_v);
+        let ray_direction = pixel_center - camera_center;
+
+        Ray::new(camera_center, ray_direction)
+    }
+}
+
+fn sample_square() -> Vec3 {
+    let mut v = <Vec3>::rnd_rng(-0.5, 0.5);
+    v.2 = 0.0;
+    v
 }
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {

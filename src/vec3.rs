@@ -21,6 +21,10 @@ pub fn cross(u: Vec3, w: Vec3) -> Vec3 {
 
 #[allow(dead_code)]
 impl Vec3 {
+    pub fn splat(x: f64) -> Vec3 {
+        Vec3(x,x,x)
+    }
+
     pub fn scale(self, k: f64) -> Vec3 {
         Vec3(self.0 * k, self.1 * k, self.2 * k)
     }

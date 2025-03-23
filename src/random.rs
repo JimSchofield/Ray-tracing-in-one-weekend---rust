@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::vec3::Vec3;
 
-trait Random<T> {
+pub trait Random<T> {
     fn rnd() -> T;
     fn rnd_rng(min: f64, max: f64) -> T;
 }
