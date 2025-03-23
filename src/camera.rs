@@ -12,12 +12,14 @@ pub struct CameraConfig {
     pub aspect_ratio: f64,
     pub image_width: f64,
     pub samples_per_pixel: i32,
+    pub max_depth: i32,
 }
 
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: f64,
     pub samples_per_pixel: i32,
+    pub max_depth: i32,
     image_height: i64,
     camera_center: Vec3,
     pixel_samples_scale: f64,
@@ -43,6 +45,7 @@ impl Camera {
             aspect_ratio,
             image_width,
             samples_per_pixel,
+            max_depth,
         } = cfg;
         let image_height = (image_width / aspect_ratio) as i64;
 
@@ -71,6 +74,7 @@ impl Camera {
             aspect_ratio,
             image_width,
             samples_per_pixel,
+            max_depth,
             image_height,
             pixel_samples_scale,
             camera_center,
@@ -86,6 +90,7 @@ impl Camera {
             samples_per_pixel,
             image_height,
             pixel_samples_scale,
+            max_depth,
             ..
         } = self;
 
@@ -98,7 +103,7 @@ impl Camera {
                 for _sample in 0..samples_per_pixel {
                     let r = self.get_ray(i, j);
 
-                    pixel_color += ray_color(&r, world);
+                    pixel_color += ray_color(&r, max_depth, world);
                 }
 
                 let samples_scale_vec = Vec3::splat(pixel_samples_scale);
@@ -133,11 +138,15 @@ fn sample_square() -> Vec3 {
     v
 }
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
+fn ray_color(r: &Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
+    if depth <= 0 {
+        return Vec3::splat(0.);
+    }
+
     let mut rec: HitRecord = Default::default();
-    if world.hit(r, Interval::new(0., f64::INFINITY), &mut rec) {
+    if world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec) {
         let direction = random_on_hemisphere(rec.normal);
-        return 0.5 * ray_color(&Ray::new(rec.p, direction), world);
+        return 0.5 * ray_color(&Ray::new(rec.p, direction), depth - 1, world);
     }
 
     let unit_direction = r.direction.unit();
