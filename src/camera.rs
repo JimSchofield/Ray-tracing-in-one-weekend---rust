@@ -5,7 +5,7 @@ use crate::{
     interval::Interval,
     random::Random,
     ray::Ray,
-    vec3::{Vec3, random_on_hemisphere},
+    vec3::{random_on_hemisphere, random_unit_vector, Vec3},
 };
 
 pub struct CameraConfig {
@@ -145,7 +145,7 @@ fn ray_color(r: &Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
 
     let mut rec: HitRecord = Default::default();
     if world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec) {
-        let direction = random_on_hemisphere(rec.normal);
+        let direction = rec.normal + random_unit_vector();
         return 0.5 * ray_color(&Ray::new(rec.p, direction), depth - 1, world);
     }
 
