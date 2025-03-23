@@ -1,5 +1,7 @@
 use std::ops;
 
+use crate::random::Random;
+
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
@@ -9,6 +11,25 @@ pub fn dot(u: Vec3, v: Vec3) -> f64 {
 
 pub fn unit(v: Vec3) -> Vec3 {
     v / v.length()
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    loop {
+        let p = Vec3::rnd_rng(-1., 1.);
+        let lensq = p.length_squared();
+        if 1e-160 < lensq && lensq <= 1. {
+            return p / lensq.sqrt();
+        }
+    }
+}
+
+pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
+    let on_unit_sphere = random_unit_vector();
+    if dot(on_unit_sphere, normal) > 0.0 {
+        on_unit_sphere
+    } else {
+        -on_unit_sphere
+    }
 }
 
 pub fn cross(u: Vec3, w: Vec3) -> Vec3 {
@@ -22,7 +43,7 @@ pub fn cross(u: Vec3, w: Vec3) -> Vec3 {
 #[allow(dead_code)]
 impl Vec3 {
     pub fn splat(x: f64) -> Vec3 {
-        Vec3(x,x,x)
+        Vec3(x, x, x)
     }
 
     pub fn scale(self, k: f64) -> Vec3 {
