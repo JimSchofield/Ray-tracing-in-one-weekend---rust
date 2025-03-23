@@ -32,6 +32,10 @@ pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
     }
 }
 
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2. * dot(v, n) * n
+}
+
 pub fn cross(u: Vec3, w: Vec3) -> Vec3 {
     Vec3(
         u.1 * w.2 - u.2 * w.1,
@@ -68,6 +72,11 @@ impl Vec3 {
 
     pub fn unit(self) -> Vec3 {
         unit(self)
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.0 < s && self.1 < s && self.2 < s
     }
 }
 

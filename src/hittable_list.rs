@@ -1,4 +1,8 @@
-use crate::{hittable::Hittable, interval::Interval};
+use crate::{
+    hittable::{HitRecord, Hittable},
+    interval::Interval,
+    material::Material,
+};
 
 #[derive(Default)]
 pub struct HittableList {
@@ -20,20 +24,24 @@ impl Hittable for HittableList {
         &self,
         r: &crate::ray::Ray,
         ray_t: Interval,
-        rec: &mut crate::hittable::HitRecord,
-    ) -> bool {
-        let mut temp_rec = rec.clone();
+    ) -> (bool, Option<HitRecord>) {
+        let mut rec: Option<HitRecord> = None;
         let mut hit_anything = false;
         let mut closest_so_far = ray_t.max;
 
         for obj in &self.objects {
-            if obj.hit(r, Interval::new(ray_t.min, closest_so_far), &mut temp_rec) {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                *rec = temp_rec.clone();
+            let (did_hit, hit_record) = obj.hit(r, Interval::new(ray_t.min, closest_so_far));
+            if did_hit {
+                if let Some(r) = hit_record {
+                    hit_anything = true;
+                    closest_so_far = r.t;
+                    rec = Some(r)
+                } else {
+                    panic!("Hit record missing with a hit?")
+                }
             }
         }
 
-        hit_anything
+        (hit_anything, rec)
     }
 }

@@ -1,11 +1,11 @@
 use crate::{
     color::write_color,
-    hittable::{HitRecord, Hittable},
+    hittable::Hittable,
     hittable_list::HittableList,
     interval::Interval,
     random::Random,
     ray::Ray,
-    vec3::{random_on_hemisphere, random_unit_vector, Vec3},
+    vec3::{Vec3, random_unit_vector},
 };
 
 pub struct CameraConfig {
@@ -27,17 +27,6 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
 }
-
-// impl Default for Camera {
-//     fn default() -> Self {
-//         Camera {
-//             aspect_ratio: 16.0 / 9.0,
-//             image_width: 400.,
-//             samples_per_pixel: 10,
-//             config: None,
-//         }
-//     }
-// }
 
 impl Camera {
     pub fn new(cfg: CameraConfig) -> Camera {
@@ -143,10 +132,16 @@ fn ray_color(r: &Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
         return Vec3::splat(0.);
     }
 
-    let mut rec: HitRecord = Default::default();
-    if world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec) {
-        let direction = rec.normal + random_unit_vector();
-        return 0.5 * ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+    let (is_hit, hit_record) = world.hit(r, Interval::new(0.001, f64::INFINITY));
+    if is_hit {
+        if let Some(rec) = hit_record {
+            let (_b, attenuation, scattered) = rec.mat.scatter(r, &rec);
+            if _b {
+                return attenuation * ray_color(&scattered, depth - 1, world);
+            }
+
+            return Vec3(0., 0., 0.);
+        }
     }
 
     let unit_direction = r.direction.unit();

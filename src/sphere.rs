@@ -1,26 +1,28 @@
 use crate::{
-    hittable::Hittable, interval::Interval, vec3::{dot, Vec3}
+    hittable::{HitRecord, Hittable, set_face_normal},
+    interval::Interval,
+    material::Material,
+    vec3::{Vec3, dot},
 };
 
-#[derive(Debug)]
 pub struct Sphere {
     center: Vec3,
     radius: f64,
+    mat: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
-        Sphere { center, radius }
+    pub fn new(center: Vec3, radius: f64, mat: Box<dyn Material>) -> Self {
+        Sphere {
+            center,
+            radius,
+            mat,
+        }
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(
-        &self,
-        r: &crate::ray::Ray,
-        ray_t: Interval,
-        rec: &mut crate::hittable::HitRecord,
-    ) -> bool {
+    fn hit(&self, r: &crate::ray::Ray, ray_t: Interval) -> (bool, Option<HitRecord>) {
         let oc = self.center - r.origin;
         let a = r.direction.length_squared();
         let h = dot(r.direction, oc);
@@ -28,7 +30,7 @@ impl Hittable for Sphere {
         let discriminant = h * h - a * c;
 
         if discriminant < 0.0 {
-            return false;
+            return (false, None);
         }
 
         let mut root = (h - discriminant.sqrt()) / a;
@@ -36,15 +38,24 @@ impl Hittable for Sphere {
         if !ray_t.surrounds(root) {
             root = (h + discriminant.sqrt()) / a;
             if !ray_t.surrounds(root) {
-                return false;
+                return (false, None);
             }
         }
 
-        rec.t = root;
-        rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - self.center) / self.radius;
-        rec.set_face_normal(r, outward_normal);
+        let t = root;
+        let p = r.at(t);
+        let outward_normal = (p - self.center) / self.radius;
+        let (normal, front_face) = set_face_normal(r, outward_normal);
 
-        true
+        (
+            true,
+            Some(HitRecord {
+                t,
+                p,
+                normal,
+                front_face,
+                mat: &self.mat,
+            }),
+        )
     }
 }
