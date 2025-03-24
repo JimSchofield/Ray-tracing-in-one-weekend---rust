@@ -71,7 +71,7 @@ fn main() {
         look_at: Vec3(0., 0., -1.),
         v_up: Vec3(0., 1., 0.),
         aspect_ratio: 16. / 9.,
-        image_width: 400.0,
+        image_width: 1200.0,
         samples_per_pixel: 100,
         max_depth: 50,
         defocus_angle: 10.0,

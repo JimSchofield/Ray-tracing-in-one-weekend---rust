@@ -6,8 +6,10 @@ use crate::{
     interval::Interval,
     random::Random,
     ray::Ray,
-    vec3::{cross, random_in_unit_disk, unit, Vec3},
+    vec3::{Vec3, cross, random_in_unit_disk, unit},
 };
+
+use rayon::prelude::*;
 
 pub struct CameraConfig {
     pub vfov: f64,
@@ -124,10 +126,7 @@ impl Camera {
     pub fn render(&mut self, world: &HittableList) {
         let &mut Camera {
             image_width,
-            samples_per_pixel,
             image_height,
-            pixel_samples_scale,
-            max_depth,
             ..
         } = self;
 
@@ -135,19 +134,39 @@ impl Camera {
 
         for j in 0..(image_height) {
             eprint!("\rScanlines remaining: {} ", image_height - j);
-            for i in 0..(image_width as i64) {
-                let mut pixel_color = Vec3(0., 0., 0.);
-                for _sample in 0..samples_per_pixel {
-                    let r = self.get_ray(i, j);
 
-                    pixel_color += ray_color(&r, max_depth, world);
-                }
+            let row: Vec<Vec3> = (0..(image_width as i64))
+                .collect::<Vec<_>>()
+                .par_iter()
+                .map(|i| {
+                    self.render_pixel(j, *i, world)
+                }).collect();
 
-                let samples_scale_vec = Vec3::splat(pixel_samples_scale);
-                write_color(samples_scale_vec * pixel_color);
+            for pixel in row {
+                write_color(pixel);
             }
         }
         eprint!("\rDone! ");
+    }
+
+    fn render_pixel(&self, j: i64, i: i64, world: &HittableList) -> Vec3 {
+        let &Camera {
+            samples_per_pixel,
+            pixel_samples_scale,
+            max_depth,
+            ..
+        } = self;
+
+        let mut pixel_color = Vec3(0., 0., 0.);
+        for _sample in 0..samples_per_pixel {
+            let r = self.get_ray(i, j);
+
+            pixel_color += ray_color(&r, max_depth, world);
+        }
+
+        let samples_scale_vec = Vec3::splat(pixel_samples_scale);
+
+        samples_scale_vec * pixel_color
     }
 
     fn get_ray(&self, i: i64, j: i64) -> Ray {
@@ -182,7 +201,6 @@ impl Camera {
         self.camera_center + (p.0 * self.defocus_disk_u) + (p.1 * self.defocus_disk_v)
     }
 }
-
 
 fn sample_square() -> Vec3 {
     let mut v = <Vec3>::rnd_rng(-0.5, 0.5);

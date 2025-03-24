@@ -1,13 +1,14 @@
 use crate::{
     hittable::{HitRecord, Hittable},
     interval::Interval,
-    material::Material,
 };
 
 #[derive(Default)]
 pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
 }
+
+unsafe impl Sync for HittableList {}
 
 impl HittableList {
     pub fn add(&mut self, obj: Box<dyn Hittable>) {
@@ -20,11 +21,7 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(
-        &self,
-        r: &crate::ray::Ray,
-        ray_t: Interval,
-    ) -> (bool, Option<HitRecord>) {
+    fn hit(&self, r: &crate::ray::Ray, ray_t: Interval) -> (bool, Option<HitRecord>) {
         let mut rec: Option<HitRecord> = None;
         let mut hit_anything = false;
         let mut closest_so_far = ray_t.max;
