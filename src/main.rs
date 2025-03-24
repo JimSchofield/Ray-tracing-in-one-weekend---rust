@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use camera::{Camera, CameraConfig};
 use hittable_list::HittableList;
 use material::{Dialectric, Lambertian, Metal};
@@ -64,6 +66,10 @@ fn main() {
     )));
 
     let mut cam = Camera::new(CameraConfig {
+        vfov: 20.,
+        look_from: Vec3(-2., 2., 1.),
+        look_at: Vec3(0., 0., -1.),
+        v_up: Vec3(0., 1., 0.),
         aspect_ratio: 16. / 9.,
         image_width: 400.0,
         samples_per_pixel: 50,

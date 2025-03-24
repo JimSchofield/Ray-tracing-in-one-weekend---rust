@@ -1,21 +1,31 @@
 use crate::{
     color::write_color,
+    global_stuff::degrees_to_radians,
     hittable::Hittable,
     hittable_list::HittableList,
     interval::Interval,
     random::Random,
     ray::Ray,
-    vec3::{Vec3, random_unit_vector},
+    vec3::{Vec3, cross, random_unit_vector, unit},
 };
 
 pub struct CameraConfig {
+    pub vfov: f64,
+    pub look_from: Vec3,
+    pub look_at: Vec3,
+    pub v_up: Vec3,
     pub aspect_ratio: f64,
     pub image_width: f64,
     pub samples_per_pixel: i32,
     pub max_depth: i32,
 }
 
+#[allow(dead_code)]
 pub struct Camera {
+    pub vfov: f64,
+    pub look_from: Vec3,
+    pub look_at: Vec3,
+    pub v_up: Vec3,
     pub aspect_ratio: f64,
     pub image_width: f64,
     pub samples_per_pixel: i32,
@@ -26,11 +36,18 @@ pub struct Camera {
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
 }
 
 impl Camera {
     pub fn new(cfg: CameraConfig) -> Camera {
         let CameraConfig {
+            vfov,
+            look_from,
+            look_at,
+            v_up,
             aspect_ratio,
             image_width,
             samples_per_pixel,
@@ -40,15 +57,23 @@ impl Camera {
 
         let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
 
+        let camera_center = look_from;
+
         // Camera
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (look_from - look_at).length();
+        let theta = degrees_to_radians(vfov);
+        let h = (theta / 2.).tan();
+        let viewport_height = 2. * h * focal_length;
         let viewport_width = viewport_height * (image_width / image_height as f64);
-        let camera_center = Vec3(0., 0., 0.);
+
+        // u,v,w unit basis vectors for camera coordinate frame
+        let w = unit(look_from - look_at);
+        let u = unit(cross(v_up, w));
+        let v = cross(w, u);
 
         // horizontal and vertial vectors
-        let viewport_u = Vec3(viewport_width, 0., 0.);
-        let viewport_v = Vec3(0., -viewport_height, 0.);
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * -v;
 
         // Delta vectors
         let pixel_delta_u = viewport_u / image_width;
@@ -56,10 +81,13 @@ impl Camera {
 
         // Upper left pixel
         let viewport_upper_left =
-            camera_center - Vec3(0., 0., focal_length) - viewport_u / 2. - viewport_v / 2.;
+            camera_center - (focal_length * w) - viewport_u / 2. - viewport_v / 2.;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         Camera {
+            vfov,
+            look_at,
+            look_from,
             aspect_ratio,
             image_width,
             samples_per_pixel,
@@ -70,6 +98,10 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            u,
+            v,
+            w,
+            v_up,
         }
     }
 
