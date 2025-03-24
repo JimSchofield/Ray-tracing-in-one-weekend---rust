@@ -1,7 +1,7 @@
 use crate::{
     hittable::HitRecord,
     ray::Ray,
-    vec3::{random_unit_vector, reflect, Vec3},
+    vec3::{dot, random_unit_vector, reflect, unit, Vec3},
 };
 
 pub trait Material {
@@ -30,14 +30,18 @@ impl Material for Lambertian {
 
 pub struct Metal {
     pub albedo: Vec3,
+    pub fuzz: f64,
 }
 
 impl Material for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (bool, Vec3, Ray) {
-        let reflected = reflect(r_in.direction, rec.normal);
+        let mut reflected = reflect(r_in.direction, rec.normal);
+        reflected = unit(reflected) + (self.fuzz * random_unit_vector());
         let scattered = Ray::new(rec.p, reflected);
         let attenuation = self.albedo;
 
-        (true, attenuation, scattered)
+        let b = dot(scattered.direction, rec.normal) > 0.;
+
+        (b, attenuation, scattered)
     }
 }

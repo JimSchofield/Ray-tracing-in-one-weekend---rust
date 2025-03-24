@@ -28,9 +28,11 @@ fn main() {
     });
     let material_left = Box::new(Metal {
         albedo: Vec3(0.8, 0.8, 0.8),
+        fuzz: 0.3,
     });
     let material_right = Box::new(Metal {
         albedo: Vec3(0.8, 0.6, 0.2),
+        fuzz: 1.0,
     });
 
     world.add(Box::new(Sphere::new(
@@ -57,7 +59,7 @@ fn main() {
     let mut cam = Camera::new(CameraConfig {
         aspect_ratio: 16. / 9.,
         image_width: 400.0,
-        samples_per_pixel: 100,
+        samples_per_pixel: 50,
         max_depth: 50,
     });
 
