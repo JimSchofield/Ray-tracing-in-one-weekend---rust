@@ -32,6 +32,16 @@ pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
     }
 }
 
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let mut p = Vec3::rnd_rng(-1., 1.);
+        p.2 = 0.;
+        if p.length_squared() < 1. {
+            return p;
+        }
+    }
+}
+
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - 2. * dot(v, n) * n
 }

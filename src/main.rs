@@ -72,8 +72,10 @@ fn main() {
         v_up: Vec3(0., 1., 0.),
         aspect_ratio: 16. / 9.,
         image_width: 400.0,
-        samples_per_pixel: 50,
+        samples_per_pixel: 100,
         max_depth: 50,
+        defocus_angle: 10.0,
+        focus_dist: 3.4,
     });
 
     cam.render(&world);
