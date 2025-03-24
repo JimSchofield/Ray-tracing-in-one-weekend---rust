@@ -1,6 +1,6 @@
 use camera::{Camera, CameraConfig};
 use hittable_list::HittableList;
-use material::{Lambertian, Metal};
+use material::{Dialectric, Lambertian, Metal};
 use sphere::Sphere;
 use vec3::Vec3;
 
@@ -26,9 +26,8 @@ fn main() {
     let material_center = Box::new(Lambertian {
         albedo: Vec3(0.1, 0.2, 0.5),
     });
-    let material_left = Box::new(Metal {
-        albedo: Vec3(0.8, 0.8, 0.8),
-        fuzz: 0.3,
+    let material_left = Box::new(Dialectric {
+        refraction_index: 1.5,
     });
     let material_right = Box::new(Metal {
         albedo: Vec3(0.8, 0.6, 0.2),

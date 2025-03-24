@@ -1,7 +1,7 @@
 use crate::{
     hittable::HitRecord,
     ray::Ray,
-    vec3::{dot, random_unit_vector, reflect, unit, Vec3},
+    vec3::{dot, random_unit_vector, reflect, refract, unit, Vec3},
 };
 
 pub trait Material {
@@ -43,5 +43,27 @@ impl Material for Metal {
         let b = dot(scattered.direction, rec.normal) > 0.;
 
         (b, attenuation, scattered)
+    }
+}
+
+pub struct Dialectric {
+    pub refraction_index: f64,
+}
+
+impl Material for Dialectric {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (bool, Vec3, Ray) {
+        let attenuation = Vec3(1., 1., 1.);
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+
+        let unit_direction = unit(r_in.direction);
+        let refracted = refract(unit_direction, rec.normal, ri);
+
+        let scattered = Ray::new(rec.p, refracted);
+
+        (true, attenuation, scattered)
     }
 }
