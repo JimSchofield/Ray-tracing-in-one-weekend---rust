@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::random;
 
 use crate::vec3::Vec3;
 
@@ -9,9 +9,7 @@ pub trait Random<T> {
 
 impl Random<f64> for f64 {
     fn rnd() -> f64 {
-        let mut rng = rand::rng();
-
-        rng.random::<f64>()
+        random::<f64>()
     }
 
     fn rnd_rng(min: f64, max: f64) -> f64 {
