@@ -8,16 +8,20 @@ use crate::{
 pub struct Sphere {
     center: Vec3,
     radius: f64,
-    mat: Box<dyn Material>,
+    mat: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, mat: Box<dyn Material>) -> Self {
+    pub fn new(center: Vec3, radius: f64, mat: Material) -> Self {
         Sphere {
             center,
             radius,
             mat,
         }
+    }
+
+    pub fn into_box(self) -> Box<Self> {
+        Box::new(self)
     }
 }
 
@@ -54,7 +58,7 @@ impl Hittable for Sphere {
                 p,
                 normal,
                 front_face,
-                mat: &self.mat,
+                mat: self.mat.clone(),
             }),
         )
     }

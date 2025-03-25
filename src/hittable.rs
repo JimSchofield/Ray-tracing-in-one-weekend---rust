@@ -9,10 +9,10 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, ray_t: Interval) -> (bool, Option<HitRecord>);
 }
 
-pub struct HitRecord<'a> {
+pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
-    pub mat: &'a Box<dyn Material>,
+    pub mat: Material,
     pub t: f64,
     pub front_face: bool,
 }
